@@ -1,6 +1,8 @@
 import { ProjectStorage } from '../storage/ProjectStorage';
 import type { Project } from '../models/Project';
 import { renderProjects } from './projectList';
+import { ActiveProject } from '../storage/ActiveProject';
+import { renderProjectSelector } from './projectSelector';
 
 export function setupProjectForm(): void {
   const form = document.querySelector<HTMLFormElement>('#project-form')!;
@@ -15,7 +17,12 @@ export function setupProjectForm(): void {
       description: descInput.value.trim()
     };
     ProjectStorage.saveProject(newProject);
+
+    ActiveProject.set(newProject.id);
+
+    renderProjectSelector();
     renderProjects();
+
     form.reset();
   });
 }
