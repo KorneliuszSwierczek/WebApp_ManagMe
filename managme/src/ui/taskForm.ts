@@ -3,6 +3,7 @@ import { ActiveProject } from '../storage/ActiveProject';
 import { StoryStorage } from '../storage/StoryStorage';
 import { renderKanban } from './taskKanban';
 import type { Task } from '../models/Task';
+import { renderApp } from './mainApp';
 
 export function setupTaskForm(): void {
   const form = document.querySelector<HTMLFormElement>('#task-form')!;
@@ -37,6 +38,7 @@ export function setupTaskForm(): void {
 
     TaskStorage.save(task);
     form.reset();
+    renderApp();
     renderKanban();
   });
 }

@@ -1,6 +1,7 @@
 import { ProjectStorage } from '../storage/ProjectStorage';
 import { ActiveProject } from '../storage/ActiveProject';
 import { renderProjects } from './projectList';
+import { renderApp } from './mainApp';
 
 export function renderProjectSelector(): void {
   const container = document.querySelector<HTMLDivElement>('#project-selector')!;
@@ -23,6 +24,7 @@ export function renderProjectSelector(): void {
   select.addEventListener('change', () => {
     const selectedId = select.value;
     ActiveProject.set(selectedId);
+    renderApp();
     renderProjects(); // pokaż tylko dane aktywnego projektu
   });
 

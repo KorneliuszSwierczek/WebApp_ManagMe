@@ -3,6 +3,7 @@ import { ActiveProject } from '../storage/ActiveProject';
 import { renderStoryList } from './storyList';
 import { UserManager } from '../storage/UserManager';
 import type { Story } from '../models/Story';
+import { renderApp } from './mainApp';
 
 export function setupStoryForm(): void {
   const form = document.querySelector<HTMLFormElement>('#story-form')!;
@@ -32,5 +33,6 @@ export function setupStoryForm(): void {
     StoryStorage.save(story);
     renderStoryList();
     form.reset();
+    renderApp();
   });
 }

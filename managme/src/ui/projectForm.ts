@@ -3,6 +3,7 @@ import type { Project } from '../models/Project';
 import { renderProjects } from './projectList';
 import { ActiveProject } from '../storage/ActiveProject';
 import { renderProjectSelector } from './projectSelector';
+import { renderApp } from './mainApp';
 
 export function setupProjectForm(): void {
   const form = document.querySelector<HTMLFormElement>('#project-form')!;
@@ -19,6 +20,8 @@ export function setupProjectForm(): void {
     ProjectStorage.saveProject(newProject);
 
     ActiveProject.set(newProject.id);
+    ActiveProject.set(newProject.id);
+    renderApp();
 
     renderProjectSelector();
     renderProjects();
