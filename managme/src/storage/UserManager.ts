@@ -1,23 +1,25 @@
 import type { User } from '../models/user';
 
 export class UserManager {
-  private static key = 'loggedUser';
+  private static currentUserKey = 'loggedUser';
+
+  private static users: User[] = [
+    { id: '1', firstName: 'Jan', lastName: 'Kowalski', role: 'admin' },
+    { id: '2', firstName: 'Anna', lastName: 'Nowak', role: 'developer' },
+    { id: '3', firstName: 'Piotr', lastName: 'Zieliński', role: 'devops' }
+  ];
+
+  static setMockUser(): void {
+    const admin = this.users.find(u => u.role === 'admin')!;
+    localStorage.setItem(this.currentUserKey, JSON.stringify(admin));
+  }
 
   static getUser(): User | null {
-    const data = localStorage.getItem(this.key);
+    const data = localStorage.getItem(this.currentUserKey);
     return data ? JSON.parse(data) : null;
   }
 
-  static setMockUser(): void {
-    const mockUser: User = {
-      id: '1',
-      firstName: 'Korneliusz',
-      lastName: 'Świerczek'
-    };
-    localStorage.setItem(this.key, JSON.stringify(mockUser));
-  }
-
-  static clear(): void {
-    localStorage.removeItem(this.key);
+  static getAllUsers(): User[] {
+    return this.users;
   }
 }

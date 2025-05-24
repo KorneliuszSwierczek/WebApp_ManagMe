@@ -12,6 +12,11 @@ export class StoryStorage {
     return this.getAll().filter(s => s.projectId === projectId);
   }
 
+    static getById(id: string): Story | undefined {
+    return this.getAll().find(s => s.id === id);
+  }
+
+
   static save(story: Story): void {
     const stories = this.getAll();
     stories.push(story);
