@@ -1,17 +1,15 @@
 import './style.css';
-import { UserManager } from './storage/UserManager';
 import { setupLoginForm } from './ui/loginForm';
+import { getCurrentUser } from './api/AuthAPI';
 import { renderApp } from './ui/mainApp';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const app = document.querySelector<HTMLDivElement>('#app')!;
-  const user = UserManager.getUser();
+  const user = await getCurrentUser();
 
   if (user) {
-    // Jeśli użytkownik zalogowany – uruchom aplikację
     renderApp();
   } else {
-    // Ekran logowania
     app.innerHTML = `
       <h1>Logowanie</h1>
       <form id="login-form">

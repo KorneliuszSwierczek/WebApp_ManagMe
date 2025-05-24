@@ -1,18 +1,17 @@
-import { AuthAPI } from '../api/AuthAPI';
+import { login } from '../api/AuthAPI';
 import { renderApp } from './mainApp';
 
 export function setupLoginForm(): void {
   const form = document.querySelector<HTMLFormElement>('#login-form')!;
-  const login = document.querySelector<HTMLInputElement>('#login')!;
-  const password = document.querySelector<HTMLInputElement>('#password')!;
+  const loginInput = document.querySelector<HTMLInputElement>('#login')!;
+  const passwordInput = document.querySelector<HTMLInputElement>('#password')!;
   const errorBox = document.querySelector<HTMLDivElement>('#login-error')!;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const user = await AuthAPI.login(login.value, password.value);
-
-    if (user) {
-      renderApp(); // uruchamiamy główną aplikację
+    const success = await login(loginInput.value, passwordInput.value);
+    if (success) {
+      renderApp();
     } else {
       errorBox.textContent = 'Niepoprawny login lub hasło';
     }
