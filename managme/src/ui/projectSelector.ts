@@ -9,7 +9,9 @@ export function renderProjectSelector(): void {
   const activeId = ActiveProject.get();
 
   const select = document.createElement('select');
-  select.innerHTML = `<option disabled selected value="">Wybierz projekt</option>`;
+  select.className = 'form-select';
+  select.setAttribute('aria-label', 'Wybór projektu');
+  select.innerHTML = `<option disabled ${!activeId ? 'selected' : ''} value="">Wybierz projekt</option>`;
 
   projects.forEach((project) => {
     const option = document.createElement('option');
@@ -25,7 +27,7 @@ export function renderProjectSelector(): void {
     const selectedId = select.value;
     ActiveProject.set(selectedId);
     renderApp();
-    renderProjects(); // pokaż tylko dane aktywnego projektu
+    renderProjects();
   });
 
   container.innerHTML = '';

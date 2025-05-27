@@ -8,70 +8,165 @@ import { setupTaskForm } from './taskForm';
 import { renderKanban } from './taskKanban';
 import { UserManager } from '../storage/UserManager';
 
-export function renderApp(): void {
+/**
+ * Funkcja do wyświetlania dynamicznych alertów Bootstrap
+ * @param message Treść komunikatu
+ * @param type Typ alertu: 'success', 'danger', 'warning', 'info'
+ */
+function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
+  const alertsContainer = document.getElementById('alerts');
+  if (!alertsContainer) return;
 
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.role = 'alert';
+  alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+  alertsContainer.appendChild(alert);
+
+  // Automatyczne ukrycie po 5 sekundach
+  setTimeout(() => {
+    alert.classList.remove('show');
+    alert.classList.add('hide');
+    setTimeout(() => alert.remove(), 200); // Czas na animację
+  }, 5000);
+}
+
+export function renderApp(): void {
   const user = UserManager.getUser();
   const app = document.querySelector<HTMLDivElement>('#app')!;
   if (!user) return;
 
   app.innerHTML = `
-    <div class="bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen p-8 rounded shadow-lg">
-      <div id="user-info" class="mb-4"></div>
-      <div id="project-selector" class="mb-4"></div>
+    <div class="d-flex flex-column min-vh-100">
+      <div class="container my-5 flex-grow-1">
+        <div class="bg-white p-5 rounded shadow-sm border">
+          
 
-      <h1 class="text-3xl font-bold mb-6">ManagMe – Zarządzanie projektami</h1>
+          <header class="mb-5 text-center">
+            <h1 class="display-6 fw-bold text-primary">ManagMe – System zarządzania projektami</h1>
+          </header>
 
-      <form id="project-form" class="mb-6 space-y-2">
-        <input id="name" placeholder="Nazwa projektu" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <input id="description" placeholder="Opis projektu" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Dodaj projekt</button>
-      </form>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div id="user-info" class="fw-bold"></div>
+            <div id="project-selector" class="w-25"></div>
+          </div>
 
-      <ul id="project-list" class="mb-6 space-y-2"></ul>
+          <div id="alerts"></div>
 
-      <hr class="my-6 border-gray-300 dark:border-gray-600"/>
+          <!-- Sekcja projektów -->
+          <section class="mb-5">
+            <h2 class="h4 mb-3">Dodaj nowy projekt</h2>
+            <form id="project-form" class="row g-3">
+              <div class="col-md-6">
+                <input id="name" placeholder="Nazwa projektu" required class="form-control" />
+              </div>
+              <div class="col-md-6">
+                <input id="description" placeholder="Opis projektu" required class="form-control" />
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary">Dodaj projekt</button>
+              </div>
+            </form>
+            <ul id="project-list" class="list-group mt-4"></ul>
+          </section>
 
-      <h2 class="text-2xl font-semibold mb-4">Historyjki projektu</h2>
-      <form id="story-form" class="mb-6 space-y-2">
-        <input id="story-name" placeholder="Nazwa historyjki" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <input id="story-description" placeholder="Opis" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <select id="story-priority" class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white">
-          <option value="low">Niski</option>
-          <option value="medium">Średni</option>
-          <option value="high">Wysoki</option>
-        </select>
-        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Dodaj historyjkę</button>
-      </form>
+          <!-- Sekcja historyjek -->
+          <section class="mb-5">
+            <h2 class="h4 mb-3">Historyjki projektu</h2>
+            <form id="story-form" class="row g-3">
+              <div class="col-md-4">
+                <input id="story-name" placeholder="Nazwa historyjki" required class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <input id="story-description" placeholder="Opis" required class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <select id="story-priority" class="form-select">
+                  <option value="low">Niski</option>
+                  <option value="medium">Średni</option>
+                  <option value="high">Wysoki</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-success">Dodaj historyjkę</button>
+              </div>
+            </form>
+            <div id="story-list" class="mt-4"></div>
+          </section>
 
-      <div id="story-list" class="mb-8"></div>
+          <!-- Sekcja zadań -->
+          <section class="mb-5">
+            <h2 class="h4 mb-3">Dodaj zadanie</h2>
+            <form id="task-form" class="row g-3">
+              <div class="col-md-4">
+                <input id="task-name" placeholder="Nazwa zadania" required class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <input id="task-description" placeholder="Opis" required class="form-control" />
+              </div>
+              <div class="col-md-4">
+                <select id="task-priority" class="form-select">
+                  <option value="low">Niski</option>
+                  <option value="medium">Średni</option>
+                  <option value="high">Wysoki</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <input id="task-time" type="number" min="1" placeholder="Czas (h)" required class="form-control" />
+              </div>
+              <div class="col-md-6">
+                <select id="task-story" class="form-select"></select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-secondary">Dodaj</button>
+              </div>
+            </form>
 
-      <hr class="my-6 border-gray-300 dark:border-gray-600"/>
+            <!-- Estetyczna tablica Kanban -->
+            <div id="task-kanban" class="row mt-5 g-4">
+              <div class="col-md-4">
+                <div class="card border-primary">
+                  <div class="card-header bg-primary text-white fw-bold">Do zrobienia</div>
+                  <div class="card-body p-2" id="kanban-todo"></div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card border-warning">
+                  <div class="card-header bg-warning text-dark fw-bold">W trakcie</div>
+                  <div class="card-body p-2" id="kanban-doing"></div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card border-success">
+                  <div class="card-header bg-success text-white fw-bold">Zrobione</div>
+                  <div class="card-body p-2" id="kanban-done"></div>
+                </div>
+              </div>
+            </div>
 
-      <h2 class="text-2xl font-semibold mb-4">Dodaj zadanie</h2>
-      <form id="task-form" class="mb-6 space-y-2">
-        <input id="task-name" placeholder="Nazwa zadania" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <input id="task-description" placeholder="Opis" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <select id="task-priority" class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white">
-          <option value="low">Niski</option>
-          <option value="medium">Średni</option>
-          <option value="high">Wysoki</option>
-        </select>
-        <input id="task-time" type="number" min="1" placeholder="Przewidywany czas (h)" required class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white" />
-        <select id="task-story" class="w-full p-2 rounded border dark:bg-gray-700 dark:text-white"></select>
-        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">Dodaj</button>
-      </form>
+            <div id="task-detail" class="mt-4"></div>
+          </section>
 
-      <div id="task-kanban" class="flex gap-4 flex-wrap mb-8"></div>
-      <div id="task-detail" class="mb-8"></div>
+          <!-- Lista użytkowników -->
+          <section>
+            <h2 class="h4 mb-3">Lista użytkowników (mock)</h2>
+            <ul id="user-list" class="list-group">
+              ${UserManager.getAllUsers()
+                .map(u => `<li class="list-group-item">${u.firstName} ${u.lastName} (${u.role})</li>`)
+                .join('')}
+            </ul>
+          </section>
+        </div>
+      </div>
 
-      <hr class="my-6 border-gray-300 dark:border-gray-600"/>
-
-      <h2 class="text-2xl font-semibold mb-4">Lista użytkowników (mock)</h2>
-      <ul id="user-list" class="list-disc pl-6 space-y-1">
-        ${UserManager.getAllUsers()
-          .map(u => `<li>${u.firstName} ${u.lastName} (${u.role})</li>`)
-          .join('')}
-      </ul>
+      <!-- Footer -->
+      <footer class="bg-dark text-white text-center py-3">
+        <small>Aplikacja stworzona przez Korneliusz Świerczek • Nr albumu: 14933</small>
+      </footer>
     </div>
   `;
 
@@ -83,4 +178,5 @@ export function renderApp(): void {
   renderStoryList();
   setupTaskForm();
   renderKanban();
+  showAlert('Witaj w ManagMe!', 'info');
 }

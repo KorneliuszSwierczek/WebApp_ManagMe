@@ -1,8 +1,6 @@
 import { ProjectStorage } from '../storage/ProjectStorage';
 import type { Project } from '../models/Project';
-import { renderProjects } from './projectList';
 import { ActiveProject } from '../storage/ActiveProject';
-import { renderProjectSelector } from './projectSelector';
 import { renderApp } from './mainApp';
 
 export function setupProjectForm(): void {
@@ -12,20 +10,48 @@ export function setupProjectForm(): void {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+
+    const name = nameInput.value.trim();
+    const desc = descInput.value.trim();
+
+    if (!name || !desc) {
+      showAlert('Wszystkie pola projektu muszą być uzupełnione.', 'warning');
+      return;
+    }
+
     const newProject: Project = {
       id: crypto.randomUUID(),
-      name: nameInput.value.trim(),
-      description: descInput.value.trim()
+      name,
+      description: desc
     };
+
     ProjectStorage.saveProject(newProject);
-
     ActiveProject.set(newProject.id);
-    ActiveProject.set(newProject.id);
-    renderApp();
+    renderApp(); // automatycznie wywoła renderProjectSelector + renderProjects
 
-    renderProjectSelector();
-    renderProjects();
-
+    showAlert(`Dodano projekt "${name}"`, 'success');
     form.reset();
   });
+}
+
+// Pomocnicza funkcja - dodaj, jeśli nie masz jej globalnie
+function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
+  const alertsContainer = document.getElementById('alerts');
+  if (!alertsContainer) return;
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.role = 'alert';
+  alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+  alertsContainer.appendChild(alert);
+
+  setTimeout(() => {
+    alert.classList.remove('show');
+    alert.classList.add('hide');
+    setTimeout(() => alert.remove(), 200);
+  }, 5000);
 }

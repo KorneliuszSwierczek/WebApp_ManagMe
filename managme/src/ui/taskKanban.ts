@@ -10,9 +10,7 @@ export function renderKanban(): void {
   container.innerHTML = '';
 
   const grouped: Record<TaskState, Task[]> = {
-    todo: [],
-    doing: [],
-    done: []
+    todo: [], doing: [], done: []
   };
 
   const activeProjectId = ActiveProject.get();
@@ -25,39 +23,61 @@ export function renderKanban(): void {
     }
   }
 
+  const stateLabels: Record<TaskState, string> = {
+    todo: 'Do zrobienia',
+    doing: 'W trakcie',
+    done: 'Zakończone'
+  };
+
+  const colors: Record<TaskState, string> = {
+    todo: 'primary',
+    doing: 'warning',
+    done: 'success'
+  };
+
   (['todo', 'doing', 'done'] as TaskState[]).forEach(state => {
     const col = document.createElement('div');
-    col.className = 'border p-4 m-4 flex-1 bg-gray-50 dark:bg-gray-800 rounded';
-    col.innerHTML = `<h3 class="text-xl font-semibold mb-4">${state.toUpperCase()}</h3>`;
+    col.className = 'col-md-4';
+    col.innerHTML = `
+      <div class="card border-${colors[state]} h-100">
+        <div class="card-header bg-${colors[state]} text-white fw-bold">${stateLabels[state]}</div>
+        <div class="card-body p-2" id="kanban-${state}"></div>
+      </div>
+    `;
+    container.appendChild(col);
+
+    const inner = col.querySelector(`#kanban-${state}`)!;
 
     grouped[state].forEach(task => {
-      const div = document.createElement('div');
-      div.className = 'transition-opacity duration-300 opacity-0 mb-4 border-b border-gray-300 pb-2';
-      setTimeout(() => div.classList.add('opacity-100'), 10);
-
-      div.innerHTML = `
-        <strong>${task.name}</strong><br/>
-        ${task.description}<br/>
-        Priorytet: ${task.priority}<br/>
-        <button class="details-btn bg-blue-600 text-white px-2 py-1 rounded mt-2" data-id="${task.id}">Szczegóły</button>
-        <button class="delete-btn bg-red-600 text-white px-2 py-1 rounded ml-2 mt-2" data-id="${task.id}">Usuń</button>
+      const taskCard = document.createElement('div');
+      taskCard.className = 'card mb-2 shadow-sm';
+      taskCard.innerHTML = `
+        <div class="card-body">
+          <h5 class="card-title mb-1">${task.name} 
+            <span class="badge bg-${getPriorityColor(task.priority)} text-uppercase ms-2">${task.priority}</span>
+          </h5>
+          <p class="card-text small">${task.description}</p>
+          <button class="btn btn-outline-info btn-sm me-2" data-id="${task.id}">Szczegóły</button>
+          <button class="btn btn-outline-danger btn-sm" data-id="${task.id}" data-action="delete">Usuń</button>
+        </div>
       `;
 
-      div.querySelector('.details-btn')?.addEventListener('click', () => renderTaskDetail(task.id));
-
-      div.querySelector('.delete-btn')?.addEventListener('click', () => {
+      taskCard.querySelector('[data-id][data-action="delete"]')?.addEventListener('click', () => {
         if (confirm('Czy na pewno chcesz usunąć to zadanie?')) {
           TaskStorage.delete(task.id);
           renderKanban();
           const detail = document.querySelector<HTMLDivElement>('#task-detail');
           if (detail) detail.innerHTML = '';
+          showAlert(`Zadanie "${task.name}" zostało usunięte.`, 'warning');
         }
       });
 
-      col.appendChild(div);
-    });
+      taskCard.querySelector('[data-id]:not([data-action])')?.addEventListener('click', () => {
+        renderTaskDetail(task.id);
+      });
 
-    container.appendChild(col);
+      inner.appendChild(taskCard);
+    });
   });
 }
 
@@ -72,18 +92,22 @@ function renderTaskDetail(taskId: string) {
   const user = task.assignedUserId ? UserManager.getAllUsers().find(u => u.id === task.assignedUserId) : null;
 
   detail.innerHTML = `
-    <h3 class="text-lg font-bold">Szczegóły zadania</h3>
-    <p><strong>${task.name}</strong> (${task.priority})</p>
-    <p>${task.description}</p>
-    <p>Story: ${story?.name}</p>
-    <p>Status: ${task.state}</p>
-    <p>Przewidywany czas: ${task.estimatedTime}h</p>
-    <p>Data startu: ${task.startedAt ?? '-'}</p>
-    <p>Data zakończenia: ${task.finishedAt ?? '-'}</p>
-    <p>Przypisany użytkownik: ${user ? user.firstName + ' ' + user.lastName : '-'}</p>
-
-    ${task.state === 'todo' ? renderAssignForm(task) : ''}
-    ${task.state === 'doing' ? `<button id="mark-done" data-id="${task.id}" class="mt-2 bg-green-600 text-white px-3 py-1 rounded">Oznacz jako wykonane</button>` : ''}
+    <div class="card shadow mt-4">
+      <div class="card-header bg-light fw-bold">Szczegóły zadania</div>
+      <div class="card-body">
+        <h5 class="card-title">${task.name}</h5>
+        <p class="card-text">${task.description}</p>
+        <p><strong>Priorytet:</strong> ${task.priority}</p>
+        <p><strong>Story:</strong> ${story?.name}</p>
+        <p><strong>Status:</strong> ${task.state}</p>
+        <p><strong>Przewidywany czas:</strong> ${task.estimatedTime}h</p>
+        <p><strong>Data startu:</strong> ${task.startedAt ?? '-'}</p>
+        <p><strong>Data zakończenia:</strong> ${task.finishedAt ?? '-'}</p>
+        <p><strong>Przypisany użytkownik:</strong> ${user ? user.firstName + ' ' + user.lastName : '-'}</p>
+        ${task.state === 'todo' ? renderAssignForm(task) : ''}
+        ${task.state === 'doing' ? `<button id="mark-done" class="btn btn-success mt-2" data-id="${task.id}">Oznacz jako wykonane</button>` : ''}
+      </div>
+    </div>
   `;
 
   if (task.state === 'doing') {
@@ -100,24 +124,32 @@ function renderTaskDetail(taskId: string) {
 function renderAssignForm(task: Task): string {
   const users = UserManager.getAllUsers().filter(u => u.role !== 'admin');
   return `
-    <label class="block mt-2">Przypisz osobę:
-      <select id="assign-user" class="mt-1 w-full p-2 border rounded dark:bg-gray-700 dark:text-white">
+    <div class="mt-3">
+      <label for="assign-user" class="form-label">Przypisz osobę:</label>
+      <select id="assign-user" class="form-select">
         ${users.map(u => `<option value="${u.id}">${u.firstName} ${u.lastName}</option>`).join('')}
       </select>
-    </label>
-    <button id="assign-task" data-task-id="${task.id}" class="mt-2 bg-purple-600 text-white px-3 py-1 rounded">Przypisz</button>
+      <button id="assign-task" data-task-id="${task.id}" class="btn btn-primary mt-2">Przypisz</button>
+    </div>
   `;
 }
 
-// globalne nasłuchiwanie na przypisanie osoby
+function getPriorityColor(priority: string): string {
+  switch (priority) {
+    case 'low': return 'secondary';
+    case 'medium': return 'warning';
+    case 'high': return 'danger';
+    default: return 'primary';
+  }
+}
+
+// Obsługa przypisania osoby
 document.addEventListener('click', (e) => {
   const btn = e.target as HTMLElement;
   if (btn.id === 'assign-task') {
     const taskId = btn.getAttribute('data-task-id');
-    if (!taskId) return;
-
     const select = document.querySelector<HTMLSelectElement>('#assign-user');
-    if (!select) return;
+    if (!taskId || !select) return;
 
     const task = TaskStorage.getById(taskId);
     if (!task) return;
@@ -130,5 +162,32 @@ document.addEventListener('click', (e) => {
     renderKanban();
     const detail = document.querySelector<HTMLDivElement>('#task-detail');
     if (detail) detail.innerHTML = '';
+
+    const user = UserManager.getAllUsers().find(u => u.id === task.assignedUserId);
+    if (user) {
+      showAlert(`Zadanie "${task.name}" przypisano do ${user.firstName} ${user.lastName}`, 'info');
+    }
   }
 });
+
+// Alert Bootstrap helper
+function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
+  const alertsContainer = document.getElementById('alerts');
+  if (!alertsContainer) return;
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.role = 'alert';
+  alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+  alertsContainer.appendChild(alert);
+
+  setTimeout(() => {
+    alert.classList.remove('show');
+    alert.classList.add('hide');
+    setTimeout(() => alert.remove(), 200);
+  }, 5000);
+}

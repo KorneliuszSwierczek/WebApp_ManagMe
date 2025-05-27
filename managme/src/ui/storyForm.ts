@@ -17,7 +17,15 @@ export function setupStoryForm(): void {
     const user = UserManager.getUser();
     const projectId = ActiveProject.get();
 
-    if (!user || !projectId) return;
+    if (!user || !projectId) {
+      showAlert('Nie można dodać historyjki: brak aktywnego użytkownika lub projektu.', 'danger');
+      return;
+    }
+
+    if (!name.value.trim() || !desc.value.trim()) {
+      showAlert('Uzupełnij wszystkie pola historyjki.', 'warning');
+      return;
+    }
 
     const story: Story = {
       id: crypto.randomUUID(),
@@ -34,5 +42,28 @@ export function setupStoryForm(): void {
     renderStoryList();
     form.reset();
     renderApp();
+    showAlert(`Dodano historyjkę "${story.name}"`, 'success');
   });
+}
+
+// Alert Bootstrap (jeśli nie masz globalnie)
+function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
+  const alertsContainer = document.getElementById('alerts');
+  if (!alertsContainer) return;
+
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type} alert-dismissible fade show`;
+  alert.role = 'alert';
+  alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+  alertsContainer.appendChild(alert);
+
+  setTimeout(() => {
+    alert.classList.remove('show');
+    alert.classList.add('hide');
+    setTimeout(() => alert.remove(), 200);
+  }, 5000);
 }

@@ -1,24 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Zostawiamy tylko niestandardowe efekty specjalne */
+/* Styl logo */
 .logo {
-  @apply h-24 p-6 transition-[filter] duration-300 will-change-[filter];
+  height: 6rem; /* odpowiada h-24 */
+  padding: 1.5rem; /* odpowiada p-6 */
+  transition: filter 0.3s;
+  will-change: filter;
 }
+
 .logo:hover {
   filter: drop-shadow(0 0 2em #646cffaa);
 }
+
 .logo.vanilla:hover {
   filter: drop-shadow(0 0 2em #3178c6aa);
 }
 
-/* Możesz zachować kartę, jeśli chcesz ją często używać */
+/* Styl karty (jeśli nadal używasz elementów z klasą .card) */
 .card {
-  @apply p-8 rounded-lg shadow-md bg-white dark:bg-gray-800;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+  background-color: white;
 }
 
-/* Styl pomocniczy (opcjonalnie) */
+/* Styl pomocniczy */
 .read-the-docs {
-  @apply text-gray-500;
+  color: #6c757d; /* odpowiada text-muted w Bootstrapie */
 }

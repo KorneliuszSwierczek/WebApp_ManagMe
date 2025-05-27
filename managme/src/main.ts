@@ -1,4 +1,7 @@
-import './style.css';
+import './style.css'; // zostaje, jeśli masz własne style
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 import { setupLoginForm } from './ui/loginForm';
 import { getCurrentUser } from './api/AuthAPI';
 import { renderApp } from './ui/mainApp';
@@ -11,13 +14,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderApp();
   } else {
     app.innerHTML = `
-      <h1>Logowanie</h1>
-      <form id="login-form">
-        <input id="login" placeholder="Login" required />
-        <input id="password" type="password" placeholder="Hasło" required />
-        <button type="submit">Zaloguj się</button>
-      </form>
-      <div id="login-error" style="color: red; margin-top: 1rem;"></div>
+      <div class="container d-flex align-items-center justify-content-center min-vh-100">
+        <div class="card shadow p-4" style="max-width: 400px; width: 100%;">
+          <h2 class="mb-4 text-center">Logowanie</h2>
+          <form id="login-form" novalidate>
+            <div class="mb-3">
+              <label for="login" class="form-label">Login</label>
+              <input id="login" class="form-control" placeholder="Wprowadź login" required />
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Hasło</label>
+              <input id="password" type="password" class="form-control" placeholder="Wprowadź hasło" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Zaloguj się</button>
+          </form>
+          <div id="login-error" class="text-danger mt-3 text-center" style="min-height: 1.5em;"></div>
+        </div>
+      </div>
     `;
     setupLoginForm();
   }
