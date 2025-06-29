@@ -14,6 +14,9 @@ export class UserManager {
     localStorage.setItem(this.currentUserKey, JSON.stringify(admin));
   }
 
+  static setUser(user: User): void {
+  localStorage.setItem(this.currentUserKey, JSON.stringify(user));
+}
   static getUser(): User | null {
     const data = localStorage.getItem(this.currentUserKey);
     return data ? JSON.parse(data) : null;

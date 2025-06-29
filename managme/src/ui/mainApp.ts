@@ -27,11 +27,10 @@ function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'in
 
   alertsContainer.appendChild(alert);
 
-  // Automatyczne ukrycie po 5 sekundach
   setTimeout(() => {
     alert.classList.remove('show');
     alert.classList.add('hide');
-    setTimeout(() => alert.remove(), 200); // Czas na animację
+    setTimeout(() => alert.remove(), 200);
   }, 5000);
 }
 

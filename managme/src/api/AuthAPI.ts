@@ -7,11 +7,15 @@ export async function login(login: string, password: string): Promise<string | n
     body: JSON.stringify({ login, password })
   });
 
-  if (!res.ok) return null;
-
   const data = await res.json();
+  console.log('Odpowiedź z backendu po logowaniu:', data); // <-- dodaj to
+
+  if (!res.ok || !data.accessToken) return null;
+
   localStorage.setItem('accessToken', data.accessToken);
   localStorage.setItem('refreshToken', data.refreshToken);
+  localStorage.setItem('currentUser', JSON.stringify(data.user)); // jeśli masz usera
+
   return data.accessToken;
 }
 
