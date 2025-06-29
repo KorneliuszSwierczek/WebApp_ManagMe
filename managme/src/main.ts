@@ -14,17 +14,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  console.log('🌐 DOM załadowany');
+  console.log(' DOM załadowany');
 
   try {
     const user = await getCurrentUser();
-    console.log('🔐 Dane użytkownika:', user);
+    console.log(' Dane użytkownika:', user);
 
     if (user) {
-      console.log('✅ Użytkownik znaleziony, renderuję aplikację');
+      console.log(' Użytkownik znaleziony, renderuję aplikację');
+      if (localStorage.getItem('darkMode') === 'true') {
+  document.body.classList.add('dark-mode');
+}
       renderApp();
     } else {
-      console.log('❌ Brak użytkownika – pokazuję formularz logowania');
+      console.log('Brak użytkownika – pokazuję formularz logowania');
 
       app.innerHTML = `
         <div class="container d-flex align-items-center justify-content-center min-vh-100">

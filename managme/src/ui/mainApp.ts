@@ -47,6 +47,7 @@ export function renderApp(): void {
 
           <header class="mb-5 text-center">
             <h1 class="display-6 fw-bold text-primary">ManagMe – System zarządzania projektami</h1>
+            <button id="theme-toggle" class="btn btn-sm btn-outline-secondary mt-3">🌙 Tryb ciemny</button>
           </header>
 
           <div class="d-flex justify-content-between align-items-center mb-4">
@@ -178,4 +179,20 @@ export function renderApp(): void {
   setupTaskForm();
   renderKanban();
   showAlert('Witaj w ManagMe!', 'info');
+
+  const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
+
+  if (themeToggle) {
+    // Jeśli wcześniej użytkownik włączył ciemny tryb
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+      themeToggle.textContent = '☀️ Tryb jasny';
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', isDark.toString());
+      themeToggle.textContent = isDark ? '☀️ Tryb jasny' : '🌙 Tryb ciemny';
+    });
+  }
 }

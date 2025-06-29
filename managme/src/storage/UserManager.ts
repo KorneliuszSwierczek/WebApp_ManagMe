@@ -25,4 +25,11 @@ export class UserManager {
   static getAllUsers(): User[] {
     return this.users;
   }
+
+  static logout(): void {
+  localStorage.removeItem(this.currentUserKey);
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+}
+
 }

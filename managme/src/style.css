@@ -26,3 +26,18 @@
 .read-the-docs {
   color: #6c757d; /* odpowiada text-muted w Bootstrapie */
 }
+
+body.dark-mode {
+  background-color: #0d1b2a;
+  color: white;
+}
+
+body.dark-mode .card,
+body.dark-mode .bg-white {
+  background-color: #1b263b !important;
+  color: white;
+}
+
+body.dark-mode .text-muted {
+  color: #ccc !important;
+}
