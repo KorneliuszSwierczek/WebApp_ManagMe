@@ -12,10 +12,9 @@ export class StoryStorage {
     return this.getAll().filter(s => s.projectId === projectId);
   }
 
-    static getById(id: string): Story | undefined {
+  static getById(id: string): Story | undefined {
     return this.getAll().find(s => s.id === id);
   }
-
 
   static save(story: Story): void {
     const stories = this.getAll();
@@ -26,5 +25,12 @@ export class StoryStorage {
   static delete(id: string): void {
     const filtered = this.getAll().filter(s => s.id !== id);
     localStorage.setItem(this.key, JSON.stringify(filtered));
+  }
+
+  static update(updatedStory: Story): void {
+    const stories = this.getAll().map(story =>
+      story.id === updatedStory.id ? updatedStory : story
+    );
+    localStorage.setItem(this.key, JSON.stringify(stories));
   }
 }

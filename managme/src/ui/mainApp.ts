@@ -8,11 +8,7 @@ import { setupTaskForm } from './taskForm';
 import { renderKanban } from './taskKanban';
 import { UserManager } from '../storage/UserManager';
 
-/**
- * Funkcja do wyświetlania dynamicznych alertów Bootstrap
- * @param message Treść komunikatu
- * @param type Typ alertu: 'success', 'danger', 'warning', 'info'
- */
+
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;
@@ -153,11 +149,12 @@ export function renderApp(): void {
 
           <!-- Lista użytkowników -->
           <section>
-            <h2 class="h4 mb-3">Lista użytkowników (mock)</h2>
+            <h2 class="h4 mb-3">Lista użytkowników:</h2>
             <ul id="user-list" class="list-group">
               ${UserManager.getAllUsers()
                 .map(u => `<li class="list-group-item">${u.firstName} ${u.lastName} (${u.role})</li>`)
                 .join('')}
+                
             </ul>
           </section>
         </div>
@@ -166,6 +163,7 @@ export function renderApp(): void {
       <!-- Footer -->
       <footer class="bg-dark text-white text-center py-3">
         <small>Aplikacja stworzona przez Korneliusz Świerczek • Nr albumu: 14933</small>
+        
       </footer>
     </div>
   `;
@@ -195,4 +193,7 @@ export function renderApp(): void {
       themeToggle.textContent = isDark ? '☀️ Tryb jasny' : '🌙 Tryb ciemny';
     });
   }
+
+  
+  
 }

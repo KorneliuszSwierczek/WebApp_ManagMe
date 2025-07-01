@@ -22,6 +22,13 @@ export function setupStoryForm(): void {
       return;
     }
 
+    // ✅ Sprawdzenie roli
+    const role = user.role;
+    if (role !== 'admin' && role !== 'devops') {
+      showAlert('Tylko administrator lub devops może dodawać historyjki.', 'danger');
+      return;
+    }
+
     if (!name.value.trim() || !desc.value.trim()) {
       showAlert('Uzupełnij wszystkie pola historyjki.', 'warning');
       return;
@@ -46,7 +53,7 @@ export function setupStoryForm(): void {
   });
 }
 
-// Alert Bootstrap (jeśli nie masz globalnie)
+// Alert Bootstrap
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;

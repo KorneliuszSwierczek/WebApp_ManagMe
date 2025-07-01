@@ -16,10 +16,19 @@ export function renderKanban(): void {
   const activeProjectId = ActiveProject.get();
   if (!activeProjectId) return;
 
+  const currentUser = UserManager.getUser();
+  const role = currentUser?.role;
+
   for (const task of TaskStorage.getAll()) {
     const story = StoryStorage.getById(task.storyId);
     if (story?.projectId === activeProjectId) {
-      grouped[task.state].push(task);
+      if (role === 'developer') {
+        if (task.assignedUserId === currentUser?.id) {
+          grouped[task.state].push(task);
+        }
+      } else {
+        grouped[task.state].push(task);
+      }
     }
   }
 
@@ -58,19 +67,57 @@ export function renderKanban(): void {
           </h5>
           <p class="card-text small">${task.description}</p>
           <button class="btn btn-outline-info btn-sm me-2" data-id="${task.id}">Szczegóły</button>
-          <button class="btn btn-outline-danger btn-sm" data-id="${task.id}" data-action="delete">Usuń</button>
+          ${role !== 'developer' ? `<button class="btn btn-outline-danger btn-sm me-2" data-id="${task.id}" data-action="delete">Usuń</button>` : ''}
+          ${(role === 'admin' || role === 'devops') ? `<button class="btn btn-outline-secondary btn-sm" data-id="${task.id}" data-action="edit">Edytuj</button>` : ''}
         </div>
       `;
 
-      taskCard.querySelector('[data-id][data-action="delete"]')?.addEventListener('click', () => {
-        if (confirm('Czy na pewno chcesz usunąć to zadanie?')) {
-          TaskStorage.delete(task.id);
-          renderKanban();
+      if (role !== 'developer') {
+        taskCard.querySelector('[data-id][data-action="delete"]')?.addEventListener('click', () => {
+          if (confirm('Czy na pewno chcesz usunąć to zadanie?')) {
+            TaskStorage.delete(task.id);
+            renderKanban();
+            const detail = document.querySelector<HTMLDivElement>('#task-detail');
+            if (detail) detail.innerHTML = '';
+            showAlert(`Zadanie "${task.name}" zostało usunięte.`, 'warning');
+          }
+        });
+      }
+
+      if (role === 'admin' || role === 'devops') {
+        taskCard.querySelector('[data-action="edit"]')?.addEventListener('click', () => {
           const detail = document.querySelector<HTMLDivElement>('#task-detail');
-          if (detail) detail.innerHTML = '';
-          showAlert(`Zadanie "${task.name}" zostało usunięte.`, 'warning');
-        }
-      });
+          if (!detail) return;
+
+          detail.innerHTML = `
+            <div class="card shadow mt-4">
+              <div class="card-header bg-light fw-bold">Edytuj zadanie</div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="edit-name" class="form-label">Nazwa</label>
+                  <input type="text" class="form-control" id="edit-name" value="${task.name}">
+                </div>
+                <div class="mb-3">
+                  <label for="edit-desc" class="form-label">Opis</label>
+                  <textarea class="form-control" id="edit-desc">${task.description}</textarea>
+                </div>
+                <button class="btn btn-primary" id="save-task-edits">Zapisz</button>
+              </div>
+            </div>
+          `;
+
+          detail.querySelector('#save-task-edits')?.addEventListener('click', () => {
+            const nameInput = document.getElementById('edit-name') as HTMLInputElement;
+            const descInput = document.getElementById('edit-desc') as HTMLTextAreaElement;
+            task.name = nameInput.value;
+            task.description = descInput.value;
+            TaskStorage.update(task);
+            renderKanban();
+            detail.innerHTML = '';
+            showAlert(`Zadanie zostało zaktualizowane.`, 'info');
+          });
+        });
+      }
 
       taskCard.querySelector('[data-id]:not([data-action])')?.addEventListener('click', () => {
         renderTaskDetail(task.id);
@@ -91,6 +138,9 @@ function renderTaskDetail(taskId: string) {
   const story = StoryStorage.getById(task.storyId);
   const user = task.assignedUserId ? UserManager.getAllUsers().find(u => u.id === task.assignedUserId) : null;
 
+  const currentUser = UserManager.getUser();
+  const role = currentUser?.role;
+
   detail.innerHTML = `
     <div class="card shadow mt-4">
       <div class="card-header bg-light fw-bold">Szczegóły zadania</div>
@@ -104,13 +154,15 @@ function renderTaskDetail(taskId: string) {
         <p><strong>Data startu:</strong> ${task.startedAt ?? '-'}</p>
         <p><strong>Data zakończenia:</strong> ${task.finishedAt ?? '-'}</p>
         <p><strong>Przypisany użytkownik:</strong> ${user ? user.firstName + ' ' + user.lastName : '-'}</p>
-        ${task.state === 'todo' ? renderAssignForm(task) : ''}
-        ${task.state === 'doing' ? `<button id="mark-done" class="btn btn-success mt-2" data-id="${task.id}">Oznacz jako wykonane</button>` : ''}
+        ${task.state === 'todo' && role !== 'developer' ? renderAssignForm(task) : ''}
+        ${(task.state === 'doing' && (role !== 'developer' || task.assignedUserId === currentUser?.id))
+          ? `<button id="mark-done" class="btn btn-success mt-2" data-id="${task.id}">Oznacz jako wykonane</button>` 
+          : ''}
       </div>
     </div>
   `;
 
-  if (task.state === 'doing') {
+  if (task.state === 'doing' && (role !== 'developer' || task.assignedUserId === currentUser?.id)) {
     detail.querySelector('#mark-done')?.addEventListener('click', () => {
       task.state = 'done';
       task.finishedAt = new Date().toISOString();
@@ -143,7 +195,6 @@ function getPriorityColor(priority: string): string {
   }
 }
 
-// Obsługa przypisania osoby
 document.addEventListener('click', (e) => {
   const btn = e.target as HTMLElement;
   if (btn.id === 'assign-task') {
@@ -170,7 +221,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Alert Bootstrap helper
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;

@@ -22,4 +22,15 @@ export class ProjectStorage {
   static clearAll(): void {
     localStorage.removeItem(this.key);
   }
+
+
+static updateProject(updated: { id: string; name: string; description: string }) {
+  const projects = this.getProjects();
+  const index = projects.findIndex(p => p.id === updated.id);
+  if (index !== -1) {
+    projects[index] = updated;
+    localStorage.setItem('projects', JSON.stringify(projects));
+  }
+}
+
 }

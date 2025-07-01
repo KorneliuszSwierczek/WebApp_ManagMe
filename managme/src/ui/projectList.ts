@@ -1,42 +1,120 @@
 import { ProjectStorage } from '../storage/ProjectStorage';
 import { ActiveProject } from '../storage/ActiveProject';
 import { renderProjectSelector } from './projectSelector';
+import { UserManager } from '../storage/UserManager'; // ⬅️ nowy import
+
+// ✅ Sprawdzenie roli aktualnie zalogowanego użytkownika
+function getCurrentUserRole(): 'admin' | 'devops' | 'developer' | null {
+  const user = UserManager.getUser();
+  return user?.role ?? null;
+}
 
 export function renderProjects(): void {
-  const list = document.querySelector<HTMLUListElement>('#project-list')!;
+  const list = document.querySelector<HTMLDivElement>('#project-list')!;
   list.innerHTML = '';
 
   const activeId = ActiveProject.get();
   const project = ProjectStorage.getProjects().find(p => p.id === activeId);
 
   if (!project) {
-    list.innerHTML = '<li class="list-group-item text-muted fst-italic">Brak aktywnego projektu lub projekt został usunięty</li>';
+    list.innerHTML =
+      '<div class="alert alert-info fst-italic">Brak aktywnego projektu lub projekt został usunięty.</div>';
     return;
   }
 
-  const li = document.createElement('li');
-  li.className = 'list-group-item d-flex justify-content-between align-items-center';
+  const card = document.createElement('div');
+  card.className = 'card shadow-sm mb-3';
 
-  const info = document.createElement('div');
-  info.innerHTML = `<strong>${project.name}</strong>: ${project.description}`;
-  li.appendChild(info);
+  const body = document.createElement('div');
+  body.className = 'card-body';
 
-  const btn = document.createElement('button');
-  btn.textContent = 'Usuń projekt';
-  btn.className = 'btn btn-sm btn-danger';
-  btn.onclick = () => {
-    ProjectStorage.deleteProject(project.id);
-    ActiveProject.clear();
-    renderProjectSelector();
-    renderProjects();
-    showAlert(`Projekt "${project.name}" został usunięty.`, 'warning');
-  };
+  const title = document.createElement('h5');
+  title.className = 'card-title mb-2';
+  title.textContent = project.name;
 
-  li.appendChild(btn);
-  list.appendChild(li);
+  const desc = document.createElement('p');
+  desc.className = 'card-text text-muted mb-3';
+  desc.textContent = project.description;
+
+  const btnGroup = document.createElement('div');
+  btnGroup.className = 'd-flex gap-2';
+
+  const role = getCurrentUserRole();
+
+  if (role === 'admin') {
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edytuj';
+    editBtn.className = 'btn btn-sm btn-outline-primary';
+    editBtn.onclick = () => renderEditForm(project);
+    btnGroup.appendChild(editBtn);
+  }
+
+  if (role === 'admin' || role === 'devops') {
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Usuń';
+    deleteBtn.className = 'btn btn-sm btn-danger';
+    deleteBtn.onclick = () => {
+      ProjectStorage.deleteProject(project.id);
+      ActiveProject.clear();
+      renderProjectSelector();
+      renderProjects();
+      showAlert(`Projekt "${project.name}" został usunięty.`, 'warning');
+    };
+    btnGroup.appendChild(deleteBtn);
+  }
+
+  body.appendChild(title);
+  body.appendChild(desc);
+  if (btnGroup.children.length > 0) body.appendChild(btnGroup);
+  card.appendChild(body);
+  list.appendChild(card);
 }
 
-// Można przenieść do globalnych helpers jeśli często używane
+// ✅ Render formularza edycji (tylko dla admina)
+function renderEditForm(project: { id: string; name: string; description: string }) {
+  const list = document.querySelector<HTMLDivElement>('#project-list')!;
+  list.innerHTML = '';
+
+  const form = document.createElement('form');
+  form.className = 'card shadow-sm p-3';
+
+  form.innerHTML = `
+    <h5 class="card-title mb-3">Edytuj projekt</h5>
+    <div class="mb-3">
+      <label for="edit-project-name" class="form-label">Nazwa</label>
+      <input type="text" class="form-control" id="edit-project-name" value="${project.name}">
+    </div>
+    <div class="mb-3">
+      <label for="edit-project-desc" class="form-label">Opis</label>
+      <textarea class="form-control" id="edit-project-desc" rows="3">${project.description}</textarea>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-success btn-sm">Zapisz</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="cancel-edit">Anuluj</button>
+    </div>
+  `;
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = (form.querySelector('#edit-project-name') as HTMLInputElement).value.trim();
+    const description = (form.querySelector('#edit-project-desc') as HTMLTextAreaElement).value.trim();
+    if (!name) return showAlert('Nazwa nie może być pusta.', 'danger');
+
+    const updated = { ...project, name, description };
+    ProjectStorage.updateProject(updated);
+    renderProjectSelector();
+    renderProjects();
+    showAlert('Zaktualizowano projekt.', 'success');
+  });
+
+  form.querySelector('#cancel-edit')!.addEventListener('click', () => {
+    renderProjects();
+  });
+
+  list.appendChild(form);
+}
+
+// ✅ Funkcja do wyświetlania alertów (bez zmian)
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;

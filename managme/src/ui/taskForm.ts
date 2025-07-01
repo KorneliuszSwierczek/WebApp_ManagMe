@@ -4,6 +4,7 @@ import { StoryStorage } from '../storage/StoryStorage';
 import { renderKanban } from './taskKanban';
 import type { Task } from '../models/Task';
 import { renderApp } from './mainApp';
+import { UserManager } from '../storage/UserManager'; // ⬅️ dodany import
 
 export function setupTaskForm(): void {
   const form = document.querySelector<HTMLFormElement>('#task-form')!;
@@ -12,6 +13,16 @@ export function setupTaskForm(): void {
   const priority = document.querySelector<HTMLSelectElement>('#task-priority')!;
   const time = document.querySelector<HTMLInputElement>('#task-time')!;
   const story = document.querySelector<HTMLSelectElement>('#task-story')!;
+
+  const currentUser = UserManager.getUser();
+  const role = currentUser?.role;
+
+  // 🔐 Sprawdzenie dostępu
+  if (role !== 'admin' && role !== 'devops') {
+    showAlert('Tylko administrator lub devops może dodawać zadania.', 'danger');
+    form.style.display = 'none'; // Opcjonalnie: ukryj formularz
+    return;
+  }
 
   const activeProject = ActiveProject.get();
   if (!activeProject) {

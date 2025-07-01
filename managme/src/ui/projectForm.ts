@@ -2,6 +2,7 @@ import { ProjectStorage } from '../storage/ProjectStorage';
 import type { Project } from '../models/Project';
 import { ActiveProject } from '../storage/ActiveProject';
 import { renderApp } from './mainApp';
+import { UserManager } from '../storage/UserManager'; // ⬅️ dodany import
 
 export function setupProjectForm(): void {
   const form = document.querySelector<HTMLFormElement>('#project-form')!;
@@ -10,6 +11,15 @@ export function setupProjectForm(): void {
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+
+    const currentUser = UserManager.getUser();
+    const role = currentUser?.role;
+
+    // ✅ Sprawdzenie uprawnień
+    if (role !== 'admin' && role !== 'devops') {
+      showAlert('Tylko administrator lub devops może dodawać projekty.', 'danger');
+      return;
+    }
 
     const name = nameInput.value.trim();
     const desc = descInput.value.trim();
