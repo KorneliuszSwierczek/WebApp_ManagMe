@@ -1,9 +1,9 @@
 import { ProjectStorage } from '../storage/ProjectStorage';
 import { ActiveProject } from '../storage/ActiveProject';
 import { renderProjectSelector } from './projectSelector';
-import { UserManager } from '../storage/UserManager'; // ⬅️ nowy import
+import { UserManager } from '../storage/UserManager'; 
 
-// ✅ Sprawdzenie roli aktualnie zalogowanego użytkownika
+
 function getCurrentUserRole(): 'admin' | 'devops' | 'developer' | null {
   const user = UserManager.getUser();
   return user?.role ?? null;
@@ -70,7 +70,7 @@ export function renderProjects(): void {
   list.appendChild(card);
 }
 
-// ✅ Render formularza edycji (tylko dla admina)
+//formularza edycji (tylko dla admina)
 function renderEditForm(project: { id: string; name: string; description: string }) {
   const list = document.querySelector<HTMLDivElement>('#project-list')!;
   list.innerHTML = '';
@@ -114,7 +114,7 @@ function renderEditForm(project: { id: string; name: string; description: string
   list.appendChild(form);
 }
 
-// ✅ Funkcja do wyświetlania alertów (bez zmian)
+//alerty
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;

@@ -8,7 +8,6 @@ import { setupTaskForm } from './taskForm';
 import { renderKanban } from './taskKanban';
 import { UserManager } from '../storage/UserManager';
 
-
 function showAlert(message: string, type: 'success' | 'danger' | 'warning' | 'info') {
   const alertsContainer = document.getElementById('alerts');
   if (!alertsContainer) return;
@@ -37,25 +36,28 @@ export function renderApp(): void {
 
   app.innerHTML = `
     <div class="d-flex flex-column min-vh-100">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container-fluid">
+          <span class="navbar-brand fw-bold">ManagMe</span>
+          <div class="d-flex align-items-center" id="user-info"></div>
+        </div>
+      </nav>
+
       <div class="container my-5 flex-grow-1">
-        <div class="bg-white p-5 rounded shadow-sm border">
-          
-
-          <header class="mb-5 text-center">
-            <h1 class="display-6 fw-bold text-primary">ManagMe – System zarządzania projektami</h1>
-            <button id="theme-toggle" class="btn btn-sm btn-outline-secondary mt-3">🌙 Tryb ciemny</button>
-          </header>
-
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div id="user-info" class="fw-bold"></div>
-            <div id="project-selector" class="w-25"></div>
+        <div class="bg-white p-4 rounded shadow-sm border">
+          <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+            <h1 class="h4 fw-bold text-primary">System zarządzania projektami</h1>
+            <div>
+              <div id="project-selector" class="w-auto d-inline-block"></div>
+              <button id="theme-toggle" class="btn btn-sm btn-outline-secondary ms-3">🌙 Tryb ciemny</button>
+            </div>
           </div>
 
           <div id="alerts"></div>
 
           <!-- Sekcja projektów -->
           <section class="mb-5">
-            <h2 class="h4 mb-3">Dodaj nowy projekt</h2>
+            <h2 class="h5 mb-3 text-secondary">Dodaj nowy projekt</h2>
             <form id="project-form" class="row g-3">
               <div class="col-md-6">
                 <input id="name" placeholder="Nazwa projektu" required class="form-control" />
@@ -72,7 +74,7 @@ export function renderApp(): void {
 
           <!-- Sekcja historyjek -->
           <section class="mb-5">
-            <h2 class="h4 mb-3">Historyjki projektu</h2>
+            <h2 class="h5 mb-3 text-secondary">Historyjki projektu</h2>
             <form id="story-form" class="row g-3">
               <div class="col-md-4">
                 <input id="story-name" placeholder="Nazwa historyjki" required class="form-control" />
@@ -96,7 +98,7 @@ export function renderApp(): void {
 
           <!-- Sekcja zadań -->
           <section class="mb-5">
-            <h2 class="h4 mb-3">Dodaj zadanie</h2>
+            <h2 class="h5 mb-3 text-secondary">Dodaj zadanie</h2>
             <form id="task-form" class="row g-3">
               <div class="col-md-4">
                 <input id="task-name" placeholder="Nazwa zadania" required class="form-control" />
@@ -122,7 +124,6 @@ export function renderApp(): void {
               </div>
             </form>
 
-            <!-- Estetyczna tablica Kanban -->
             <div id="task-kanban" class="row mt-5 g-4">
               <div class="col-md-4">
                 <div class="card border-primary">
@@ -147,23 +148,19 @@ export function renderApp(): void {
             <div id="task-detail" class="mt-4"></div>
           </section>
 
-          <!-- Lista użytkowników -->
           <section>
-            <h2 class="h4 mb-3">Lista użytkowników:</h2>
+            <h2 class="h5 mb-3 text-secondary">Lista użytkowników:</h2>
             <ul id="user-list" class="list-group">
               ${UserManager.getAllUsers()
                 .map(u => `<li class="list-group-item">${u.firstName} ${u.lastName} (${u.role})</li>`)
                 .join('')}
-                
             </ul>
           </section>
         </div>
       </div>
 
-      <!-- Footer -->
       <footer class="bg-dark text-white text-center py-3">
         <small>Aplikacja stworzona przez Korneliusz Świerczek • Nr albumu: 14933</small>
-        
       </footer>
     </div>
   `;
@@ -181,7 +178,6 @@ export function renderApp(): void {
   const themeToggle = document.querySelector<HTMLButtonElement>('#theme-toggle');
 
   if (themeToggle) {
-    // Jeśli wcześniej użytkownik włączył ciemny tryb
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark-mode');
       themeToggle.textContent = '☀️ Tryb jasny';
@@ -193,7 +189,4 @@ export function renderApp(): void {
       themeToggle.textContent = isDark ? '☀️ Tryb jasny' : '🌙 Tryb ciemny';
     });
   }
-
-  
-  
 }

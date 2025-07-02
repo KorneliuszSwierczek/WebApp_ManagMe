@@ -8,13 +8,13 @@ export async function login(login: string, password: string): Promise<string | n
   });
 
   const data = await res.json();
-  console.log('Odpowiedź z backendu po logowaniu:', data); // <-- dodaj to
+  console.log('Odpowiedź z backendu po logowaniu:', data);
 
   if (!res.ok || !data.accessToken) return null;
 
   localStorage.setItem('accessToken', data.accessToken);
   localStorage.setItem('refreshToken', data.refreshToken);
-  localStorage.setItem('currentUser', JSON.stringify(data.user)); // jeśli masz usera
+  localStorage.setItem('currentUser', JSON.stringify(data.user));
 
   return data.accessToken;
 }
@@ -22,6 +22,8 @@ export async function login(login: string, password: string): Promise<string | n
 export async function getCurrentUser(): Promise<any | null> {
   const token = localStorage.getItem('accessToken');
   if (!token) return null;
+
+
 
   const res = await fetch('http://localhost:3000/api/me', {
     headers: {
